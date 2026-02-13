@@ -42,6 +42,21 @@ export const POPULAR_LOCATIONS = [
   "Austin, TX",
 ] as const;
 
+export const REGION_OPTIONS = [
+  { value: "seattle_metro", label: "Seattle Metro" },
+  { value: "sf_bay_area", label: "SF Bay Area" },
+  { value: "la_metro", label: "Los Angeles Metro" },
+  { value: "portland_metro", label: "Portland Metro" },
+  { value: "nyc_metro", label: "NYC Metro" },
+  { value: "chicago_metro", label: "Chicago Metro" },
+  { value: "austin_metro", label: "Austin Metro" },
+  { value: "boston_metro", label: "Boston Metro" },
+  { value: "dc_metro", label: "DC Metro" },
+  { value: "san_diego_metro", label: "San Diego Metro" },
+  { value: "denver_metro", label: "Denver Metro" },
+  { value: "other", label: "Other" },
+] as const;
+
 export const POPULAR_MAJORS = [
   "Computer Science",
   "Engineering",

@@ -42,6 +42,7 @@ export async function PUT(request: NextRequest) {
     major: body.major || null,
     gender: body.gender || null,
     location: body.location,
+    region: body.region || null,
     same_gender_pref: body.same_gender_pref || "no_preference",
     max_price: body.max_price || null,
     move_in_date: body.move_in_date || null,

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const location = searchParams.get("location");
+  const region = searchParams.get("region");
   const gender = searchParams.get("gender");
   const maxPrice = searchParams.get("max_price");
   const major = searchParams.get("major");
@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
     .range(offset, offset + limit - 1);
 
   // Apply filters
-  if (location) {
-    query = query.ilike("location", `%${location}%`);
+  if (region) {
+    query = query.eq("region", region);
   }
   if (gender) {
     query = query.eq("gender", gender);
@@ -61,7 +61,15 @@ export async function GET(request: NextRequest) {
     query = query.eq("job_type", jobType);
   }
   if (moveInDate) {
-    query = query.eq("move_in_date", moveInDate);
+    // +/- 30 day range for flexible matching
+    const date = new Date(moveInDate);
+    const from = new Date(date);
+    from.setDate(from.getDate() - 30);
+    const to = new Date(date);
+    to.setDate(to.getDate() + 30);
+    const fromStr = from.toISOString().split("T")[0];
+    const toStr = to.toISOString().split("T")[0];
+    query = query.gte("move_in_date", fromStr).lte("move_in_date", toStr);
   }
 
   const { data, error, count } = await query;

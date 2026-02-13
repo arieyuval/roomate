@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
-import { GENDER_OPTIONS, JOB_TYPE_OPTIONS } from "@/lib/constants";
+import { GENDER_OPTIONS, JOB_TYPE_OPTIONS, REGION_OPTIONS } from "@/lib/constants";
 
 export interface Filters {
-  location: string;
+  region: string;
   gender: string;
   max_price: string;
   major: string;
@@ -20,7 +20,7 @@ interface FilterBarProps {
 }
 
 const emptyFilters: Filters = {
-  location: "",
+  region: "",
   gender: "",
   max_price: "",
   major: "",
@@ -75,15 +75,20 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <div className="px-4 pb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 border-t border-gray-100 pt-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">
-              Location
+              Metro Area
             </label>
-            <input
-              type="text"
-              value={filters.location}
-              onChange={(e) => updateFilter("location", e.target.value)}
-              placeholder="Any"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none"
-            />
+            <select
+              value={filters.region}
+              onChange={(e) => updateFilter("region", e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none bg-white"
+            >
+              <option value="">Any</option>
+              {REGION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

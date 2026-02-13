@@ -12,6 +12,7 @@ CREATE TABLE profiles (
   major TEXT,
   gender TEXT CHECK (gender IN ('male', 'female', 'non-binary', 'other')),
   location TEXT NOT NULL,
+  region TEXT,
   same_gender_pref TEXT DEFAULT 'no_preference' CHECK (same_gender_pref IN ('yes', 'no', 'no_preference')),
   max_price INTEGER,
   move_in_date DATE,
@@ -26,6 +27,7 @@ CREATE TABLE profiles (
 
 CREATE INDEX idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX idx_profiles_location ON profiles(location);
+CREATE INDEX idx_profiles_region ON profiles(region);
 CREATE INDEX idx_profiles_gender ON profiles(gender);
 CREATE INDEX idx_profiles_is_active ON profiles(is_active);
 CREATE INDEX idx_profiles_max_price ON profiles(max_price);

@@ -10,6 +10,7 @@ import {
   JOB_TYPE_OPTIONS,
   POPULAR_LOCATIONS,
   POPULAR_MAJORS,
+  REGION_OPTIONS,
 } from "@/lib/constants";
 import PhotoUpload from "./PhotoUpload";
 
@@ -17,12 +18,14 @@ interface ProfileFormProps {
   userId: string;
   initialData?: Partial<Profile>;
   isOnboarding?: boolean;
+  onSaved?: () => Promise<void>;
 }
 
 export default function ProfileForm({
   userId,
   initialData,
   isOnboarding = false,
+  onSaved,
 }: ProfileFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -34,6 +37,7 @@ export default function ProfileForm({
     major: initialData?.major || "",
     gender: initialData?.gender || "",
     location: initialData?.location || "",
+    region: initialData?.region || "",
     same_gender_pref: initialData?.same_gender_pref || "no_preference",
     max_price: initialData?.max_price || "",
     move_in_date: initialData?.move_in_date || "",
@@ -62,6 +66,7 @@ export default function ProfileForm({
           max_price: form.max_price ? Number(form.max_price) : null,
           move_in_date: form.move_in_date || null,
           job_type: form.job_type || null,
+          region: form.region || null,
         }),
       });
 
@@ -70,6 +75,9 @@ export default function ProfileForm({
         throw new Error(data.error || "Failed to save profile");
       }
 
+      if (onSaved) {
+        await onSaved();
+      }
       router.push("/browse");
       router.refresh();
     } catch (err: unknown) {
@@ -180,6 +188,29 @@ export default function ProfileForm({
             <option key={l} value={l} />
           ))}
         </datalist>
+      </div>
+
+      {/* Region / Metro Area */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Metro area *
+        </label>
+        <select
+          value={form.region}
+          onChange={(e) => updateField("region", e.target.value)}
+          required
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none bg-white"
+        >
+          <option value="">Select a metro area</option>
+          {REGION_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-400 mt-1">
+          People in the same metro area will see each other
+        </p>
       </div>
 
       {/* Same gender preference */}

@@ -59,7 +59,7 @@ export default function EditProfilePage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-6">
             Edit Profile
           </h1>
-          <ProfileForm userId={user.id} initialData={profile} />
+          <ProfileForm userId={user.id} initialData={profile} onSaved={refreshProfile} />
 
           {/* Profile visibility toggle */}
           <div className="mt-6 pt-6 border-t border-gray-200">

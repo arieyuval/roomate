@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import ProfileForm from "@/app/components/ProfileForm";
 
 export default function OnboardingPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refreshProfile } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function OnboardingPage() {
       {/* Form */}
       <div className="max-w-lg mx-auto px-4 py-8 -mt-4">
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <ProfileForm userId={user.id} isOnboarding />
+          <ProfileForm userId={user.id} isOnboarding onSaved={refreshProfile} />
         </div>
       </div>
     </div>

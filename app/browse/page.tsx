@@ -22,7 +22,7 @@ export default function BrowsePage() {
   const [matchedName, setMatchedName] = useState<string | null>(null);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [filters, setFilters] = useState<Filters>({
-    location: "",
+    region: "",
     gender: "",
     max_price: "",
     major: "",
@@ -45,7 +45,7 @@ export default function BrowsePage() {
     if (profile && !filtersInitialized) {
       setFilters((prev) => ({
         ...prev,
-        location: profile.location || "",
+        region: profile.region || "",
         job_type: profile.job_type || "",
       }));
       setFiltersInitialized(true);
@@ -55,7 +55,7 @@ export default function BrowsePage() {
   const fetchProfiles = useCallback(async () => {
     setLoadingProfiles(true);
     const params = new URLSearchParams();
-    if (filters.location) params.set("location", filters.location);
+    if (filters.region) params.set("region", filters.region);
     if (filters.gender) params.set("gender", filters.gender);
     if (filters.max_price) params.set("max_price", filters.max_price);
     if (filters.major) params.set("major", filters.major);

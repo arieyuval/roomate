@@ -6,6 +6,7 @@ export interface Profile {
   major: string | null;
   gender: "male" | "female" | "non-binary" | "other" | null;
   location: string;
+  region: string | null;
   same_gender_pref: "yes" | "no" | "no_preference";
   max_price: number | null;
   move_in_date: string | null;
