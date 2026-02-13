@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { User } from "@supabase/supabase-js";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { Profile } from "@/lib/types";
@@ -26,69 +26,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createBrowserSupabaseClient();
+  const profileFetchedFor = useRef<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
-    console.log("[AUTH] fetchProfile start", userId);
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .single();
-      console.log("[AUTH] fetchProfile result", { data: !!data, error });
       setProfile(data);
-    } catch (err) {
-      console.error("[AUTH] fetchProfile threw", err);
+    } catch {
       setProfile(null);
     }
   };
 
   const refreshProfile = async () => {
     if (user) {
+      profileFetchedFor.current = null;
       await fetchProfile(user.id);
+      profileFetchedFor.current = user.id;
     }
   };
 
   useEffect(() => {
-    console.log("[AUTH] useEffect running, starting getUser...");
-
-    const getUser = async () => {
-      try {
-        console.log("[AUTH] getUser: calling supabase.auth.getUser()...");
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
-        console.log("[AUTH] getUser: result", { userId: user?.id, error });
-        setUser(user);
-        if (user) {
-          await fetchProfile(user.id);
-        }
-      } catch (err) {
-        console.error("[AUTH] getUser threw", err);
-        setUser(null);
-        setProfile(null);
-      } finally {
-        console.log("[AUTH] getUser: setLoading(false)");
-        setLoading(false);
-      }
-    };
-
-    getUser();
-
-    console.log("[AUTH] registering onAuthStateChange...");
+    // Single source of truth: onAuthStateChange fires INITIAL_SESSION
+    // immediately, so we don't need a separate getUser() call
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("[AUTH] onAuthStateChange fired", { event: _event, userId: session?.user?.id });
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+
       if (currentUser) {
-        await fetchProfile(currentUser.id);
+        // Skip if we already fetched profile for this user
+        if (profileFetchedFor.current !== currentUser.id) {
+          profileFetchedFor.current = currentUser.id;
+          await fetchProfile(currentUser.id);
+        }
       } else {
+        profileFetchedFor.current = null;
         setProfile(null);
       }
-      console.log("[AUTH] onAuthStateChange: setLoading(false)");
+
       setLoading(false);
     });
 
@@ -98,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    profileFetchedFor.current = null;
     setUser(null);
     setProfile(null);
   };

@@ -31,15 +31,11 @@ export default function BrowsePage() {
     move_in_date: "",
   });
 
-  console.log("[BROWSE] render", { loading, userId: user?.id, hasProfile: !!profile });
-
   useEffect(() => {
     if (!loading && !user) {
-      console.log("[BROWSE] no user, redirecting to /login");
       router.push("/login");
     }
     if (!loading && user && !profile) {
-      console.log("[BROWSE] no profile, redirecting to /onboarding");
       router.push("/onboarding");
     }
   }, [user, profile, loading, router]);

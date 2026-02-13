@@ -9,13 +9,9 @@ export default function LandingPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
 
-  console.log("[LANDING] render", { loading, userId: user?.id, hasProfile: !!profile });
-
   useEffect(() => {
     if (!loading && user) {
-      const dest = profile ? "/browse" : "/onboarding";
-      console.log("[LANDING] redirecting to", dest);
-      router.push(dest);
+      router.push(profile ? "/browse" : "/onboarding");
     }
   }, [user, profile, loading, router]);
 

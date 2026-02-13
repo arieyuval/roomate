@@ -27,26 +27,24 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Use getSession() instead of getUser() — reads JWT from cookie locally
+  // instead of making a network round-trip to Supabase on every request
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  console.log("[MIDDLEWARE]", { pathname, userId: user?.id, isPublicRoute });
-
   // Redirect unauthenticated users to login
-  if (!user && !isPublicRoute && !pathname.startsWith("/api")) {
-    console.log("[MIDDLEWARE] no user on protected route, redirecting to /login");
+  if (!session && !isPublicRoute && !pathname.startsWith("/api")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated users away from login to browse
-  if (user && pathname === "/login") {
-    console.log("[MIDDLEWARE] authed user on /login, redirecting to /browse");
+  if (session && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/browse";
     return NextResponse.redirect(url);

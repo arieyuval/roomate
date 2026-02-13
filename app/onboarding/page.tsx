@@ -9,15 +9,11 @@ export default function OnboardingPage() {
   const { user, profile, loading, refreshProfile } = useAuth();
   const router = useRouter();
 
-  console.log("[ONBOARDING] render", { loading, userId: user?.id, hasProfile: !!profile });
-
   useEffect(() => {
     if (!loading && !user) {
-      console.log("[ONBOARDING] no user, redirecting to /login");
       router.push("/login");
     }
     if (!loading && profile) {
-      console.log("[ONBOARDING] has profile, redirecting to /browse");
       router.push("/browse");
     }
   }, [user, profile, loading, router]);
