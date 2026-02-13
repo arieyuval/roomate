@@ -8,8 +8,8 @@ import {
   GraduationCap,
   Briefcase,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
+  ThumbsDown,
+  Heart,
 } from "lucide-react";
 import { Profile } from "@/lib/types";
 import InterestButtons from "./InterestButtons";
@@ -29,7 +29,10 @@ export default function SwipeView({
   const [animating, setAnimating] = useState<"left" | "right" | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchDeltaX = useRef(0);
+  const isHorizontalSwipe = useRef(false);
+  const swipeLocked = useRef(false);
   const [dragX, setDragX] = useState(0);
 
   const currentProfile = profiles[currentIndex];
@@ -43,6 +46,11 @@ export default function SwipeView({
       </div>
     );
   }
+
+  const hasPhotos =
+    currentProfile.photo_urls && currentProfile.photo_urls.length > 0;
+  const multiplePhotos =
+    currentProfile.photo_urls && currentProfile.photo_urls.length > 1;
 
   const advance = () => {
     setCurrentIndex((i) => i + 1);
@@ -63,36 +71,62 @@ export default function SwipeView({
     setTimeout(advance, 400);
   };
 
+  // Swipe gestures — only on the info section, NOT the photo area
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = false;
+    swipeLocked.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
-    setDragX(touchDeltaX.current);
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - touchStartY.current;
+
+    // Lock direction on first significant movement
+    if (!swipeLocked.current && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      isHorizontalSwipe.current = Math.abs(dx) > Math.abs(dy);
+      swipeLocked.current = true;
+    }
+
+    if (isHorizontalSwipe.current) {
+      touchDeltaX.current = dx;
+      setDragX(dx);
+    }
   };
 
   const handleTouchEnd = () => {
-    if (touchDeltaX.current > 100) {
-      handleInterested();
-    } else if (touchDeltaX.current < -100) {
-      handlePass();
+    if (isHorizontalSwipe.current) {
+      if (touchDeltaX.current > 120) {
+        handleInterested();
+      } else if (touchDeltaX.current < -120) {
+        handlePass();
+      }
     }
     setDragX(0);
     touchDeltaX.current = 0;
+    isHorizontalSwipe.current = false;
+    swipeLocked.current = false;
   };
 
-  const hasPhotos =
-    currentProfile.photo_urls && currentProfile.photo_urls.length > 0;
-  const multiplePhotos =
-    currentProfile.photo_urls && currentProfile.photo_urls.length > 1;
+  // Photo tap navigation — tap left/right halves of photo
+  const handlePhotoTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!multiplePhotos) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tapX = e.clientX - rect.left;
+    if (tapX < rect.width / 2) {
+      setPhotoIndex((i) =>
+        i === 0 ? currentProfile.photo_urls.length - 1 : i - 1
+      );
+    } else {
+      setPhotoIndex((i) =>
+        i === currentProfile.photo_urls.length - 1 ? 0 : i + 1
+      );
+    }
+  };
 
-  const genderPrefLabel =
-    currentProfile.same_gender_pref === "yes"
-      ? "Same gender only"
-      : currentProfile.same_gender_pref === "no"
-      ? "Any gender"
-      : "No preference";
+  // Drag intensity for visual feedback (0 to 1)
+  const dragIntensity = Math.min(Math.abs(dragX) / 120, 1);
 
   return (
     <div className="max-w-md mx-auto">
@@ -117,12 +151,12 @@ export default function SwipeView({
               }
             : undefined
         }
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        {/* Photo */}
-        <div className="relative aspect-[3/4] bg-gradient-to-br from-uw-purple to-uw-purple-light">
+        {/* Photo — tap to navigate, NO swipe here */}
+        <div
+          className="relative aspect-[3/4] bg-gradient-to-br from-uw-purple to-uw-purple-light cursor-pointer"
+          onClick={handlePhotoTap}
+        >
           {hasPhotos ? (
             <>
               <Image
@@ -131,45 +165,28 @@ export default function SwipeView({
                 fill
                 className="object-cover"
               />
+              {/* Photo progress bars at top (like Tinder/Hinge) */}
               {multiplePhotos && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPhotoIndex((i) =>
-                        i === 0
-                          ? currentProfile.photo_urls.length - 1
-                          : i - 1
-                      );
-                    }}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 text-white rounded-full p-1"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPhotoIndex((i) =>
-                        i === currentProfile.photo_urls.length - 1
-                          ? 0
-                          : i + 1
-                      );
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 text-white rounded-full p-1"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {currentProfile.photo_urls.map((_, i) => (
+                <div className="absolute top-2 left-3 right-3 flex gap-1 z-10">
+                  {currentProfile.photo_urls.map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-1 flex-1 rounded-full overflow-hidden bg-white/30"
+                    >
                       <div
-                        key={i}
-                        className={`w-2 h-2 rounded-full ${
-                          i === photoIndex ? "bg-white" : "bg-white/50"
+                        className={`h-full rounded-full transition-all duration-200 ${
+                          i <= photoIndex ? "bg-white w-full" : "w-0"
                         }`}
                       />
-                    ))}
-                  </div>
-                </>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Tap hint on first photo if multiple */}
+              {multiplePhotos && photoIndex === 0 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/40 text-white/90 text-xs px-3 py-1 rounded-full pointer-events-none">
+                  Tap photo to see more
+                </div>
               )}
             </>
           ) : (
@@ -178,21 +195,36 @@ export default function SwipeView({
             </div>
           )}
 
-          {/* Swipe indicators */}
-          {dragX > 50 && (
-            <div className="absolute top-8 left-8 bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[-15deg]">
-              INTERESTED
+          {/* Swipe indicators — overlays during drag */}
+          {dragX > 30 && (
+            <div
+              className="absolute inset-0 bg-green-500/20 flex items-center justify-center pointer-events-none transition-opacity"
+              style={{ opacity: dragIntensity }}
+            >
+              <div className="bg-green-500 text-white px-6 py-3 rounded-xl font-bold text-xl rotate-[-15deg] shadow-lg">
+                INTERESTED
+              </div>
             </div>
           )}
-          {dragX < -50 && (
-            <div className="absolute top-8 right-8 bg-red-400 text-white px-4 py-2 rounded-lg font-bold text-lg rotate-[15deg]">
-              PASS
+          {dragX < -30 && (
+            <div
+              className="absolute inset-0 bg-red-400/20 flex items-center justify-center pointer-events-none transition-opacity"
+              style={{ opacity: dragIntensity }}
+            >
+              <div className="bg-red-400 text-white px-6 py-3 rounded-xl font-bold text-xl rotate-[15deg] shadow-lg">
+                PASS
+              </div>
             </div>
           )}
         </div>
 
-        {/* Info */}
-        <div className="p-5">
+        {/* Info — swipe gestures live here */}
+        <div
+          className="p-5"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {currentProfile.name}, {currentProfile.age}
           </h2>
@@ -236,8 +268,20 @@ export default function SwipeView({
         </div>
       </div>
 
+      {/* Swipe hint */}
+      <div className="flex items-center justify-between px-6 mt-3 text-xs text-gray-400">
+        <span className="flex items-center gap-1">
+          <ThumbsDown size={12} />
+          Swipe left to pass
+        </span>
+        <span className="flex items-center gap-1">
+          Swipe right if interested
+          <Heart size={12} />
+        </span>
+      </div>
+
       {/* Buttons */}
-      <div className="mt-6">
+      <div className="mt-4">
         <InterestButtons
           onInterested={async () => {
             await handleInterested();
