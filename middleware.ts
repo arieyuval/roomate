@@ -34,8 +34,11 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = publicRoutes.includes(pathname);
 
+  console.log("[MIDDLEWARE]", { pathname, userId: user?.id, isPublicRoute });
+
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute && !pathname.startsWith("/api")) {
+    console.log("[MIDDLEWARE] no user on protected route, redirecting to /login");
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -43,6 +46,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from login to browse
   if (user && pathname === "/login") {
+    console.log("[MIDDLEWARE] authed user on /login, redirecting to /browse");
     const url = request.nextUrl.clone();
     url.pathname = "/browse";
     return NextResponse.redirect(url);

@@ -28,12 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createBrowserSupabaseClient();
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-    setProfile(data);
+    console.log("[AUTH] fetchProfile start", userId);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      console.log("[AUTH] fetchProfile result", { data: !!data, error });
+      setProfile(data);
+    } catch (err) {
+      console.error("[AUTH] fetchProfile threw", err);
+      setProfile(null);
+    }
   };
 
   const refreshProfile = async () => {
@@ -43,28 +50,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log("[AUTH] useEffect running, starting getUser...");
+
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        await fetchProfile(user.id);
+      try {
+        console.log("[AUTH] getUser: calling supabase.auth.getUser()...");
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+        console.log("[AUTH] getUser: result", { userId: user?.id, error });
+        setUser(user);
+        if (user) {
+          await fetchProfile(user.id);
+        }
+      } catch (err) {
+        console.error("[AUTH] getUser threw", err);
+        setUser(null);
+        setProfile(null);
+      } finally {
+        console.log("[AUTH] getUser: setLoading(false)");
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getUser();
 
+    console.log("[AUTH] registering onAuthStateChange...");
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+      console.log("[AUTH] onAuthStateChange fired", { event: _event, userId: session?.user?.id });
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
       } else {
         setProfile(null);
       }
+      console.log("[AUTH] onAuthStateChange: setLoading(false)");
       setLoading(false);
     });
 
