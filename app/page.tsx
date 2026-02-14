@@ -1,34 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/AuthContext";
-import { useEffect } from "react";
 import { ArrowRight, Users, Heart, MapPin } from "lucide-react";
+import Image from "next/image";
 
 export default function LandingPage() {
-  const { user, profile, loading } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && user) {
-      router.push(profile ? "/browse" : "/onboarding");
-    }
-  }, [user, profile, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center gradient-purple">
-        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen gradient-purple">
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="mb-8">
-          <span className="text-7xl">🐺</span>
+          <Image
+            src="/logo.png"
+            alt="Roomates"
+            width={120}
+            height={120}
+            className="mx-auto rounded-full"
+            priority
+          />
         </div>
         <h1 className="text-5xl sm:text-6xl font-extrabold text-white mb-4 leading-tight">
           Find your Husky
@@ -87,7 +78,7 @@ export default function LandingPage() {
       {/* Footer */}
       <div className="text-center pb-8">
         <p className="text-white/30 text-sm">
-          Made for Huskies, by Huskies 💜💛
+          Made for Huskies, by Huskies
         </p>
       </div>
     </div>

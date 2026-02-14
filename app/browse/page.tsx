@@ -11,15 +11,22 @@ import SwipeView from "@/app/components/SwipeView";
 import FilterBar, { Filters } from "@/app/components/FilterBar";
 import ViewToggle from "@/app/components/ViewToggle";
 import MatchModal from "@/app/components/MatchModal";
+import { RotateCcw } from "lucide-react";
+
+type Tab = "browse" | "dismissed";
 
 export default function BrowsePage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [dismissedProfiles, setDismissedProfiles] = useState<Profile[]>([]);
   const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [loadingDismissed, setLoadingDismissed] = useState(false);
+  const [tab, setTab] = useState<Tab>("browse");
   const [view, setView] = useState<"grid" | "swipe">("grid");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [matchedName, setMatchedName] = useState<string | null>(null);
+  const [matchedId, setMatchedId] = useState<string | null>(null);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     region: "",
@@ -36,7 +43,7 @@ export default function BrowsePage() {
       router.push("/login");
     }
     if (!loading && user && !profile) {
-      router.push("/onboarding");
+      router.push("/login");
     }
   }, [user, profile, loading, router]);
 
@@ -70,11 +77,26 @@ export default function BrowsePage() {
     setLoadingProfiles(false);
   }, [filters]);
 
+  const fetchDismissed = useCallback(async () => {
+    setLoadingDismissed(true);
+    const res = await fetch("/api/swipes/passed");
+    const data = await res.json();
+    setDismissedProfiles(data.profiles || []);
+    setLoadingDismissed(false);
+  }, []);
+
   useEffect(() => {
     if (user && profile) {
       fetchProfiles();
     }
   }, [user, profile, fetchProfiles]);
+
+  // Fetch dismissed profiles when switching to that tab
+  useEffect(() => {
+    if (tab === "dismissed" && user && profile) {
+      fetchDismissed();
+    }
+  }, [tab, user, profile, fetchDismissed]);
 
   const handleSwipe = async (
     profileId: string,
@@ -90,11 +112,41 @@ export default function BrowsePage() {
     if (action === "interested" && data.matched) {
       const matchedProfile = profiles.find((p) => p.user_id === profileId);
       setMatchedName(matchedProfile?.name || "someone");
+      setMatchedId(data.match_id || null);
     }
 
     // Remove swiped profile from list
     setProfiles((prev) => prev.filter((p) => p.user_id !== profileId));
     return data.matched || false;
+  };
+
+  const handleUndoDismiss = async (dismissedProfile: Profile) => {
+    // Delete the pass swipe
+    await fetch("/api/swipes", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ swiped_id: dismissedProfile.user_id }),
+    });
+
+    // Now express interest
+    const res = await fetch("/api/swipes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        swiped_id: dismissedProfile.user_id,
+        action: "interested",
+      }),
+    });
+    const data = await res.json();
+
+    if (data.matched) {
+      setMatchedName(dismissedProfile.name || "someone");
+    }
+
+    // Remove from dismissed list
+    setDismissedProfiles((prev) =>
+      prev.filter((p) => p.user_id !== dismissedProfile.user_id)
+    );
   };
 
   if (loading || !user || !profile) {
@@ -112,42 +164,101 @@ export default function BrowsePage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Browse Huskies</h1>
-          <ViewToggle view={view} onChange={setView} />
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setTab("browse")}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                tab === "browse"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Browse
+            </button>
+            <button
+              onClick={() => setTab("dismissed")}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+                tab === "dismissed"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <RotateCcw size={14} />
+              Dismissed
+            </button>
+          </div>
+          {tab === "browse" && <ViewToggle view={view} onChange={setView} />}
         </div>
 
-        {/* Filters */}
-        <FilterBar filters={filters} onChange={setFilters} />
+        {tab === "browse" ? (
+          <>
+            {/* Filters */}
+            <FilterBar filters={filters} onChange={setFilters} />
 
-        {/* Content */}
-        {loadingProfiles ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-uw-purple border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : profiles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <span className="text-6xl mb-4">🐺</span>
-            <p className="text-lg font-medium">No profiles found</p>
-            <p className="text-sm">
-              Try adjusting your filters or check back later
-            </p>
-          </div>
-        ) : view === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {profiles.map((p) => (
-              <ProfileCard
-                key={p.id}
-                profile={p}
-                onClick={() => setSelectedProfile(p)}
+            {/* Content */}
+            {loadingProfiles ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-8 h-8 border-4 border-uw-purple border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : profiles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                <span className="text-6xl mb-4">🐺</span>
+                <p className="text-lg font-medium">No profiles found</p>
+                <p className="text-sm">
+                  Try adjusting your filters or check back later
+                </p>
+              </div>
+            ) : view === "grid" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {profiles.map((p) => (
+                  <ProfileCard
+                    key={p.id}
+                    profile={p}
+                    onClick={() => setSelectedProfile(p)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <SwipeView
+                profiles={profiles}
+                onInterested={(id) => handleSwipe(id, "interested")}
+                onPass={(id) => handleSwipe(id, "pass").then(() => {})}
               />
-            ))}
-          </div>
+            )}
+          </>
         ) : (
-          <SwipeView
-            profiles={profiles}
-            onInterested={(id) => handleSwipe(id, "interested")}
-            onPass={(id) => handleSwipe(id, "pass").then(() => {})}
-          />
+          <>
+            {/* Dismissed tab */}
+            <p className="text-sm text-gray-500 mb-4">
+              Profiles you passed on. Tap &quot;Interested&quot; to reconsider.
+            </p>
+
+            {loadingDismissed ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-8 h-8 border-4 border-uw-purple border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : dismissedProfiles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                <RotateCcw size={40} className="mb-4" />
+                <p className="text-lg font-medium">No dismissed profiles</p>
+                <p className="text-sm">
+                  Profiles you pass on will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {dismissedProfiles.map((p) => (
+                  <ProfileCard
+                    key={p.id}
+                    profile={p}
+                    onClick={() => setSelectedProfile(p)}
+                    dismissed
+                    onUndoDismiss={() => handleUndoDismiss(p)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -157,13 +268,21 @@ export default function BrowsePage() {
           profile={selectedProfile}
           onClose={() => setSelectedProfile(null)}
           onInterested={async () => {
-            await handleSwipe(selectedProfile.user_id, "interested");
+            if (tab === "dismissed") {
+              await handleUndoDismiss(selectedProfile);
+            } else {
+              await handleSwipe(selectedProfile.user_id, "interested");
+            }
             setSelectedProfile(null);
           }}
-          onPass={async () => {
-            await handleSwipe(selectedProfile.user_id, "pass");
-            setSelectedProfile(null);
-          }}
+          onPass={
+            tab === "browse"
+              ? async () => {
+                  await handleSwipe(selectedProfile.user_id, "pass");
+                  setSelectedProfile(null);
+                }
+              : undefined
+          }
         />
       )}
 
@@ -171,7 +290,11 @@ export default function BrowsePage() {
       {matchedName && (
         <MatchModal
           matchName={matchedName}
-          onClose={() => setMatchedName(null)}
+          matchId={matchedId || undefined}
+          onClose={() => {
+            setMatchedName(null);
+            setMatchedId(null);
+          }}
         />
       )}
     </div>

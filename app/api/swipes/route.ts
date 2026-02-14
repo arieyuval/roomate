@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
+import { sendMatchEmail } from "@/app/api/email/match-notification";
 
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -51,8 +52,42 @@ export async function POST(request: NextRequest) {
     if (matchData) {
       matched = true;
       matchId = matchData.id;
+
+      // Fire-and-forget: send match notification emails
+      sendMatchEmail(user.id, swiped_id).catch((err) =>
+        console.error("Failed to send match email:", err)
+      );
     }
   }
 
   return NextResponse.json({ success: true, matched, match_id: matchId });
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { swiped_id } = await request.json();
+
+  if (!swiped_id) {
+    return NextResponse.json({ error: "Missing swiped_id" }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from("swipes")
+    .delete()
+    .eq("swiper_id", user.id)
+    .eq("swiped_id", swiped_id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

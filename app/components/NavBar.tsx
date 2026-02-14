@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Search, Heart, UserCircle, LogOut } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -25,9 +26,16 @@ export default function NavBar() {
           {/* Logo */}
           <Link
             href="/browse"
-            className="text-white font-bold text-xl tracking-tight"
+            className="flex items-center gap-2 text-white font-bold text-xl tracking-tight"
           >
-            🐺 Roomates
+            <Image
+              src="/logo.png"
+              alt="Roomates"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+            Roomates
           </Link>
 
           {/* Nav links */}

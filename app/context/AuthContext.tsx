@@ -50,16 +50,107 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Single source of truth: onAuthStateChange fires INITIAL_SESSION
-    // immediately, so we don't need a separate getUser() call
+    let cancelled = false;
+
+    const initSession = async () => {
+      try {
+        // Step 1: Fast local check — reads JWT from cookie, no network call
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (cancelled) return;
+
+        if (!session) {
+          // No session cookie at all — user is not signed in
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        // Step 2: Validate session with server — handles token refresh if expired
+        const {
+          data: { user: validatedUser },
+          error,
+        } = await supabase.auth.getUser();
+        if (cancelled) return;
+
+        if (error || !validatedUser) {
+          // Session expired and couldn't refresh — treat as signed out
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        // Step 3: Session is valid — fetch profile
+        setUser(validatedUser);
+        profileFetchedFor.current = validatedUser.id;
+        await fetchProfile(validatedUser.id);
+      } catch {
+        if (!cancelled) {
+          setUser(null);
+          setProfile(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initSession();
+
+    // Safety net: if loading hasn't resolved after 8s, force it
+    // (e.g. network offline). Does NOT clear user state.
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }, 8000);
+
+    // Listen for auth changes after initial load
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "INITIAL_SESSION" || cancelled) return;
 
+      const currentUser = session?.user ?? null;
+
+      if (event === "SIGNED_IN") {
+        // User just signed in — set loading so destination pages show spinner
+        // while we fetch their profile
+        setLoading(true);
+        setUser(currentUser);
+        if (currentUser) {
+          profileFetchedFor.current = currentUser.id;
+          await fetchProfile(currentUser.id);
+        }
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setProfile(null);
+        profileFetchedFor.current = null;
+        return;
+      }
+
+      if (event === "TOKEN_REFRESHED") {
+        // Token was silently refreshed — update user, re-fetch profile
+        // if it wasn't loaded (e.g. previous fetch failed with expired token)
+        setUser(currentUser);
+        if (currentUser && profileFetchedFor.current !== currentUser.id) {
+          profileFetchedFor.current = currentUser.id;
+          await fetchProfile(currentUser.id);
+        }
+        return;
+      }
+
+      // Default handler for other events
+      setUser(currentUser);
       if (currentUser) {
-        // Skip if we already fetched profile for this user
         if (profileFetchedFor.current !== currentUser.id) {
           profileFetchedFor.current = currentUser.id;
           await fetchProfile(currentUser.id);
@@ -68,11 +159,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileFetchedFor.current = null;
         setProfile(null);
       }
-
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

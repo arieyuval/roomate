@@ -1,74 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
-import { LogIn, UserPlus, ArrowRight } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
+  const { user, profile, loading: authLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
+
+  // Only redirect AFTER explicit sign-in, not on initial page load
+  useEffect(() => {
+    if (signedIn && !authLoading && user) {
+      router.push(profile ? "/browse" : "/onboarding");
+    }
+  }, [signedIn, authLoading, user, profile, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // Check if user already has a profile
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("user_id", user.id)
-            .single();
-          router.push(profile ? "/browse" : "/onboarding");
-        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        // Check if user has a profile
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("user_id", user.id)
-            .single();
-          router.push(profile ? "/browse" : "/onboarding");
-        }
       }
+      // Success — AuthContext's onAuthStateChange handler will pick up
+      // the SIGNED_IN event, fetch the profile, and the useEffect above
+      // will navigate once everything is ready.
+      setSignedIn(true);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
       setError(message);
-    } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  // Show spinner while sign-in is processing
+  if (submitting && !error) {
+    return (
+      <div className="min-h-screen gradient-purple flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-purple flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🐺 Roomates</h1>
+          <Image
+            src="/logo.png"
+            alt="Roomates"
+            width={80}
+            height={80}
+            className="mx-auto rounded-full mb-3"
+            priority
+          />
+          <h1 className="text-4xl font-bold text-white mb-2">Roomates</h1>
           <p className="text-uw-gold-light text-lg">
             Find your Husky roommate
           </p>
@@ -138,10 +145,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitting}
               className="w-full bg-uw-purple hover:bg-uw-purple-dark text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
+              {submitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : isSignUp ? (
                 <>
@@ -173,7 +180,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-uw-gold-light/60 text-xs mt-6">
-          Made for Huskies, by Huskies 💜💛
+          Made for Huskies, by Huskies
         </p>
       </div>
     </div>

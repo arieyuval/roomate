@@ -1,29 +1,45 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   MapPin,
   GraduationCap,
-  DollarSign,
-  Mail,
   Clock,
   Briefcase,
   Calendar,
+  ChevronRight,
+  MessageCircle,
 } from "lucide-react";
-import { Profile } from "@/lib/types";
+import { Profile, Message } from "@/lib/types";
 
 interface MatchCardProps {
+  matchId: string;
   profile: Profile;
   matchedAt: string;
+  lastMessage: Message | null;
+  myMessageCount: number;
+  currentUserId: string;
 }
 
-export default function MatchCard({ profile, matchedAt }: MatchCardProps) {
+export default function MatchCard({
+  matchId,
+  profile,
+  matchedAt,
+  lastMessage,
+  myMessageCount,
+  currentUserId,
+}: MatchCardProps) {
   const hasPhoto = profile.photo_urls && profile.photo_urls.length > 0;
   const matchDate = new Date(matchedAt);
   const timeAgo = getTimeAgo(matchDate);
+  const hasStartedChat = lastMessage !== null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+    <Link
+      href={`/matches/${matchId}`}
+      className="block bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg hover:border-uw-purple/30 transition-all"
+    >
       <div className="flex">
         {/* Photo */}
         <div className="relative w-28 h-28 sm:w-36 sm:h-36 flex-shrink-0 bg-gradient-to-br from-uw-purple to-uw-purple-light">
@@ -42,7 +58,7 @@ export default function MatchCard({ profile, matchedAt }: MatchCardProps) {
         </div>
 
         {/* Info */}
-        <div className="flex-1 p-4 min-w-0">
+        <div className="flex-1 p-4 min-w-0 flex flex-col">
           <div className="flex items-start justify-between mb-1">
             <h3 className="text-lg font-bold text-gray-900 truncate">
               {profile.name}, {profile.age}
@@ -65,13 +81,6 @@ export default function MatchCard({ profile, matchedAt }: MatchCardProps) {
             <span className="truncate">{profile.location}</span>
           </div>
 
-          {profile.max_price && (
-            <div className="flex items-center gap-1 text-sm text-gray-500 mb-1">
-              <DollarSign size={14} />
-              <span>Up to ${profile.max_price}/mo</span>
-            </div>
-          )}
-
           <div className="flex flex-wrap gap-1.5 mb-2">
             {profile.job_type && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-uw-purple/10 text-uw-purple text-xs font-medium">
@@ -82,28 +91,40 @@ export default function MatchCard({ profile, matchedAt }: MatchCardProps) {
             {profile.move_in_date && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-uw-spirit-gold/20 text-uw-purple-dark text-xs font-medium">
                 <Calendar size={10} />
-                {new Date(profile.move_in_date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                {new Date(profile.move_in_date).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+            {hasStartedChat && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                {10 - myMessageCount} msgs left
               </span>
             )}
           </div>
 
-          {/* Contact info - the prize! */}
-          {profile.contact_info && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-uw-spirit-gold/20 text-uw-purple-dark text-sm font-medium">
-              <Mail size={14} />
-              <span className="truncate">{profile.contact_info}</span>
-            </div>
-          )}
+          {/* Message preview or CTA */}
+          <div className="mt-auto flex items-center justify-between">
+            {hasStartedChat ? (
+              <p className="text-sm text-gray-500 truncate flex-1 mr-2">
+                <MessageCircle
+                  size={12}
+                  className="inline mr-1 -mt-0.5"
+                />
+                {lastMessage.sender_id === currentUserId ? "You: " : ""}
+                {lastMessage.content}
+              </p>
+            ) : (
+              <p className="text-sm text-uw-spirit-gold font-medium">
+                Start chatting!
+              </p>
+            )}
+            <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
+          </div>
         </div>
       </div>
-
-      {/* Bio snippet */}
-      {profile.bio && (
-        <div className="px-4 pb-4 -mt-1">
-          <p className="text-sm text-gray-500 line-clamp-2">{profile.bio}</p>
-        </div>
-      )}
-    </div>
+    </Link>
   );
 }
 

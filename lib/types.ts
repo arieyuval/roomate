@@ -38,6 +38,19 @@ export interface MatchWithProfile extends Match {
   profile: Profile;
 }
 
+export interface Message {
+  id: string;
+  match_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface MatchWithProfileAndMessages extends MatchWithProfile {
+  last_message: Message | null;
+  my_message_count: number;
+}
+
 export interface SwipeResponse {
   success: boolean;
   matched: boolean;

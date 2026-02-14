@@ -5,13 +5,13 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import NavBar from "@/app/components/NavBar";
 import MatchCard from "@/app/components/MatchCard";
-import { MatchWithProfile } from "@/lib/types";
+import { MatchWithProfileAndMessages } from "@/lib/types";
 import { Heart } from "lucide-react";
 
 export default function MatchesPage() {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
-  const [matches, setMatches] = useState<MatchWithProfile[]>([]);
+  const [matches, setMatches] = useState<MatchWithProfileAndMessages[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function MatchesPage() {
       router.push("/login");
     }
     if (!loading && user && !profile) {
-      router.push("/onboarding");
+      router.push("/login");
     }
   }, [user, profile, loading, router]);
 
@@ -50,7 +50,9 @@ export default function MatchesPage() {
       <NavBar />
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Your Matches</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          Your Matches
+        </h1>
 
         {loadingMatches ? (
           <div className="flex items-center justify-center py-20">
@@ -75,16 +77,20 @@ export default function MatchesPage() {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-500">
-              {matches.length} match{matches.length !== 1 ? "es" : ""} — reach
-              out and connect!
+              {matches.length} match{matches.length !== 1 ? "es" : ""} — tap to
+              chat!
             </p>
             {matches.map(
               (match) =>
                 match.profile && (
                   <MatchCard
                     key={match.id}
+                    matchId={match.id}
                     profile={match.profile}
                     matchedAt={match.created_at}
+                    lastMessage={match.last_message}
+                    myMessageCount={match.my_message_count}
+                    currentUserId={user.id}
                   />
                 )
             )}

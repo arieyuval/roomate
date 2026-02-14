@@ -3,7 +3,7 @@
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Eye, EyeOff, Trash2 } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Bug } from "lucide-react";
 import ProfileForm from "@/app/components/ProfileForm";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import NavBar from "@/app/components/NavBar";
@@ -19,7 +19,7 @@ export default function EditProfilePage() {
       router.push("/login");
     }
     if (!loading && user && !profile) {
-      router.push("/onboarding");
+      router.push("/login");
     }
   }, [user, profile, loading, router]);
 
@@ -80,6 +80,19 @@ export default function EditProfilePage() {
                 </>
               )}
             </button>
+          </div>
+
+          {/* Report bug */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <a
+              href="https://github.com/arieyuval/roomate/issues/new?labels=bug&title=%5BBug%5D+&body=**Describe+the+bug**%0A%0A**Steps+to+reproduce**%0A1.+%0A2.+%0A3.+%0A%0A**Expected+behavior**%0A%0A**Screenshots**%0A"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors"
+            >
+              <Bug size={16} />
+              Report a bug
+            </a>
           </div>
         </div>
       </div>

@@ -1,15 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, DollarSign, GraduationCap, Briefcase, Calendar } from "lucide-react";
+import { MapPin, DollarSign, GraduationCap, Briefcase, Calendar, Heart } from "lucide-react";
 import { Profile } from "@/lib/types";
 
 interface ProfileCardProps {
   profile: Profile;
   onClick: () => void;
+  dismissed?: boolean;
+  onUndoDismiss?: () => void;
 }
 
-export default function ProfileCard({ profile, onClick }: ProfileCardProps) {
+export default function ProfileCard({ profile, onClick, dismissed, onUndoDismiss }: ProfileCardProps) {
   const hasPhoto = profile.photo_urls && profile.photo_urls.length > 0;
 
   return (
@@ -74,6 +76,19 @@ export default function ProfileCard({ profile, onClick }: ProfileCardProps) {
             </span>
           )}
         </div>
+
+        {dismissed && onUndoDismiss && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUndoDismiss();
+            }}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-uw-spirit-gold hover:bg-yellow-400 text-uw-purple-dark text-sm font-semibold transition-colors"
+          >
+            <Heart size={14} fill="currentColor" />
+            Interested
+          </button>
+        )}
       </div>
     </button>
   );

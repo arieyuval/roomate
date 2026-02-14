@@ -13,6 +13,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Heart,
 } from "lucide-react";
 import { Profile } from "@/lib/types";
 import InterestButtons from "./InterestButtons";
@@ -21,7 +22,7 @@ interface ProfileCardExpandedProps {
   profile: Profile;
   onClose: () => void;
   onInterested: () => Promise<void>;
-  onPass: () => Promise<void>;
+  onPass?: () => Promise<void>;
   alreadySwiped?: boolean;
 }
 
@@ -182,12 +183,23 @@ export default function ProfileCardExpanded({
           )}
 
           {/* Action buttons */}
-          {!alreadySwiped && (
+          {!alreadySwiped && onPass && (
             <div className="pt-2">
               <InterestButtons
                 onInterested={onInterested}
                 onPass={onPass}
               />
+            </div>
+          )}
+          {!alreadySwiped && !onPass && (
+            <div className="pt-2">
+              <button
+                onClick={onInterested}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-uw-spirit-gold hover:bg-yellow-400 text-uw-purple-dark font-bold transition-colors"
+              >
+                <Heart size={20} fill="currentColor" />
+                Interested
+              </button>
             </div>
           )}
         </div>

@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 
 interface MatchModalProps {
   matchName: string;
+  matchId?: string;
   onClose: () => void;
 }
 
-export default function MatchModal({ matchName, onClose }: MatchModalProps) {
+export default function MatchModal({ matchName, matchId, onClose }: MatchModalProps) {
   const router = useRouter();
 
   return (
@@ -28,7 +29,7 @@ export default function MatchModal({ matchName, onClose }: MatchModalProps) {
             <Heart size={40} className="text-uw-purple-dark" fill="currentColor" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">
-            It&apos;s a Match! 🎉
+            It&apos;s a Match!
           </h2>
           <p className="text-gray-500">
             You and <span className="font-semibold text-uw-purple">{matchName}</span> are both interested!
@@ -36,7 +37,7 @@ export default function MatchModal({ matchName, onClose }: MatchModalProps) {
         </div>
 
         <p className="text-sm text-gray-400 mb-6">
-          Head to your matches to see their contact info
+          Start chatting to connect with your potential roommate
         </p>
 
         <div className="flex gap-3">
@@ -47,10 +48,10 @@ export default function MatchModal({ matchName, onClose }: MatchModalProps) {
             Keep Browsing
           </button>
           <button
-            onClick={() => router.push("/matches")}
+            onClick={() => router.push(matchId ? `/matches/${matchId}` : "/matches")}
             className="flex-1 px-4 py-3 rounded-lg bg-uw-purple text-white font-medium hover:bg-uw-purple-dark transition-colors"
           >
-            View Matches
+            Start Chat
           </button>
         </div>
       </div>

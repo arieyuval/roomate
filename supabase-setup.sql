@@ -137,6 +137,10 @@ CREATE POLICY "Users can read own swipes"
   ON swipes FOR SELECT
   USING (auth.uid() = swiper_id);
 
+CREATE POLICY "Users can delete own swipes"
+  ON swipes FOR DELETE
+  USING (auth.uid() = swiper_id);
+
 -- Matches RLS
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 
@@ -158,3 +162,61 @@ CREATE POLICY "Users can see own matches"
 -- INSERT policy: bucket_id = 'profile-photos' AND auth.uid()::text = (storage.foldername(name))[1]
 -- DELETE policy: bucket_id = 'profile-photos' AND auth.uid()::text = (storage.foldername(name))[1]
 -- SELECT policy: bucket_id = 'profile-photos' (public read)
+
+-- ============================================
+-- Messages table (for match chat)
+-- ============================================
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL CHECK (char_length(content) > 0 AND char_length(content) <= 1000),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_messages_match_created ON messages(match_id, created_at);
+
+-- Enforce 10-message limit per user per match
+CREATE OR REPLACE FUNCTION enforce_message_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (SELECT COUNT(*) FROM messages WHERE match_id = NEW.match_id AND sender_id = NEW.sender_id) >= 10 THEN
+    RAISE EXCEPTION 'Message limit reached' USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_message_enforce_limit
+  BEFORE INSERT ON messages
+  FOR EACH ROW
+  EXECUTE FUNCTION enforce_message_limit();
+
+-- Messages RLS
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read messages in own matches"
+  ON messages FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM matches
+      WHERE matches.id = messages.match_id
+        AND (matches.user1_id = auth.uid() OR matches.user2_id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Users can send messages in own matches"
+  ON messages FOR INSERT
+  WITH CHECK (
+    auth.uid() = sender_id
+    AND EXISTS (
+      SELECT 1 FROM matches
+      WHERE matches.id = messages.match_id
+        AND (matches.user1_id = auth.uid() OR matches.user2_id = auth.uid())
+    )
+  );
+
+-- Match DELETE policy (for unmatch)
+CREATE POLICY "Users can delete own matches"
+  ON matches FOR DELETE
+  USING (auth.uid() = user1_id OR auth.uid() = user2_id);

@@ -43,14 +43,43 @@ export async function GET() {
     );
   }
 
-  // Combine matches with profiles
+  // Get the most recent message per match + current user's message counts
+  const matchIds = matches.map((m) => m.id);
+
+  const { data: allMessages } = await supabase
+    .from("messages")
+    .select("*")
+    .in("match_id", matchIds)
+    .order("created_at", { ascending: false });
+
+  // Build last-message lookup (first message per match_id = most recent)
+  const lastMessageMap = new Map();
+  for (const msg of allMessages || []) {
+    if (!lastMessageMap.has(msg.match_id)) {
+      lastMessageMap.set(msg.match_id, msg);
+    }
+  }
+
+  // Build my-message-count lookup
+  const myCountMap = new Map();
+  for (const msg of allMessages || []) {
+    if (msg.sender_id === user.id) {
+      myCountMap.set(msg.match_id, (myCountMap.get(msg.match_id) || 0) + 1);
+    }
+  }
+
+  // Combine matches with profiles, last messages, and counts
   const matchesWithProfiles = matches.map((match) => {
     const otherUserId =
       match.user1_id === user.id ? match.user2_id : match.user1_id;
-    const profile = (profiles || []).find((p) => p.user_id === otherUserId);
+    const profile = (profiles || []).find(
+      (p: { user_id: string }) => p.user_id === otherUserId
+    );
     return {
       ...match,
       profile,
+      last_message: lastMessageMap.get(match.id) || null,
+      my_message_count: myCountMap.get(match.id) || 0,
     };
   });
 
