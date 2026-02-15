@@ -1,29 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/AuthContext";
+import { useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { LogIn, UserPlus } from "lucide-react";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const { user, profile, loading: authLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const router = useRouter();
   const supabase = createBrowserSupabaseClient();
-
-  // Only redirect AFTER explicit sign-in, not on initial page load
-  useEffect(() => {
-    if (signedIn && !authLoading && user) {
-      router.push(profile ? "/browse" : "/onboarding");
-    }
-  }, [signedIn, authLoading, user, profile, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +22,23 @@ export default function LoginPage() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        // New user — always go to onboarding
+        window.location.href = "/onboarding";
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+
+        // Check if returning user has a profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .single();
+
+        window.location.href = profile ? "/browse" : "/onboarding";
       }
-      // Success — AuthContext's onAuthStateChange handler will pick up
-      // the SIGNED_IN event, fetch the profile, and the useEffect above
-      // will navigate once everything is ready.
-      setSignedIn(true);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
