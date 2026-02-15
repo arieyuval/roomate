@@ -51,12 +51,13 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
   `;
 
   const resend = getResend();
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "Roomates <onboarding@resend.dev>";
   const sends = [];
 
   if (email1) {
     sends.push(
       resend.emails.send({
-        from: "Roomates <onboarding@resend.dev>",
+        from: fromAddress,
         to: email1,
         subject: `You matched with ${getName(user2Id)}!`,
         html: buildHtml(getName(user1Id), getName(user2Id)),
@@ -67,7 +68,7 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
   if (email2) {
     sends.push(
       resend.emails.send({
-        from: "Roomates <onboarding@resend.dev>",
+        from: fromAddress,
         to: email2,
         subject: `You matched with ${getName(user1Id)}!`,
         html: buildHtml(getName(user2Id), getName(user1Id)),
