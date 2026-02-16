@@ -41,7 +41,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-white rounded-none sm:rounded-xl shadow-sm border-y sm:border border-gray-100 mb-4 sm:mb-6 -mx-2 sm:mx-0">
       {/* Toggle bar */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -86,18 +86,27 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <label className="block text-xs font-medium text-gray-500 mb-1">
               Metro Area
             </label>
-            <select
-              value={filters.region}
-              onChange={(e) => updateFilter("region", e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none bg-white"
-            >
-              <option value="">Any</option>
+            <input
+              type="text"
+              value={REGION_OPTIONS.find((o) => o.value === filters.region)?.label || filters.region}
+              onChange={(e) => {
+                const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
+                updateFilter("region", match ? match.value : e.target.value);
+              }}
+              onBlur={(e) => {
+                const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
+                if (!match) updateFilter("region", "");
+              }}
+              placeholder="Any"
+              list="filter-regions-list"
+              autoComplete="off"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-list-button]:hidden"
+            />
+            <datalist id="filter-regions-list">
               {REGION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.label} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           <div>

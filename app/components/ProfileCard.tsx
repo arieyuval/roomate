@@ -36,7 +36,7 @@ export default function ProfileCard({ profile, onClick, dismissed, onUndoDismiss
       </div>
 
       {/* Info */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="flex items-baseline justify-between mb-1">
           <h3 className="text-lg font-bold text-gray-900 truncate">
             {profile.name}, {profile.age}

@@ -42,7 +42,7 @@ export default function MatchCard({
     >
       <div className="flex">
         {/* Photo */}
-        <div className="relative w-28 h-28 sm:w-36 sm:h-36 flex-shrink-0 bg-gradient-to-br from-uw-purple to-uw-purple-light">
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex-shrink-0 bg-gradient-to-br from-uw-purple to-uw-purple-light">
           {hasPhoto ? (
             <Image
               src={profile.photo_urls[0]}

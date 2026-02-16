@@ -11,7 +11,7 @@ import SwipeView from "@/app/components/SwipeView";
 import FilterBar, { Filters } from "@/app/components/FilterBar";
 import ViewToggle from "@/app/components/ViewToggle";
 import MatchModal from "@/app/components/MatchModal";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Heart } from "lucide-react";
 
 type Tab = "browse" | "dismissed";
 
@@ -24,6 +24,13 @@ export default function BrowsePage() {
   const [loadingDismissed, setLoadingDismissed] = useState(false);
   const [tab, setTab] = useState<Tab>("browse");
   const [view, setView] = useState<"grid" | "swipe">("grid");
+
+  // Default to swipe view on mobile
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      setView("swipe");
+    }
+  }, []);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [matchedName, setMatchedName] = useState<string | null>(null);
   const [matchedId, setMatchedId] = useState<string | null>(null);
@@ -164,13 +171,13 @@ export default function BrowsePage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setTab("browse")}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-md font-semibold transition-all ${
                 tab === "browse"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
@@ -180,7 +187,7 @@ export default function BrowsePage() {
             </button>
             <button
               onClick={() => setTab("dismissed")}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-md font-semibold transition-all flex items-center gap-2 ${
                 tab === "dismissed"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
@@ -188,6 +195,13 @@ export default function BrowsePage() {
             >
               <RotateCcw size={14} />
               Dismissed
+            </button>
+            <button
+              onClick={() => router.push("/matches")}
+              className="px-4 py-2 rounded-md font-semibold transition-all flex items-center gap-2 text-gray-500 hover:text-gray-700"
+            >
+              <Heart size={14} />
+              Matches
             </button>
           </div>
           {tab === "browse" && <ViewToggle view={view} onChange={setView} />}
@@ -212,7 +226,7 @@ export default function BrowsePage() {
                 </p>
               </div>
             ) : view === "grid" ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                 {profiles.map((p) => (
                   <ProfileCard
                     key={p.id}
@@ -249,7 +263,7 @@ export default function BrowsePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                 {dismissedProfiles.map((p) => (
                   <ProfileCard
                     key={p.id}

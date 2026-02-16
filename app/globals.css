@@ -11,6 +11,10 @@
 }
 
 @layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .gradient-purple {
     background: linear-gradient(135deg, #4B2E83 0%, #33145C 100%);
   }

@@ -141,7 +141,8 @@ export default function ProfileForm({
           onChange={(e) => updateField("major", e.target.value)}
           placeholder="e.g. Computer Science"
           list="majors-list"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none"
+          autoComplete="off"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-list-button]:hidden"
         />
         <datalist id="majors-list">
           {POPULAR_MAJORS.map((m) => (
@@ -195,19 +196,28 @@ export default function ProfileForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Metro area *
         </label>
-        <select
-          value={form.region}
-          onChange={(e) => updateField("region", e.target.value)}
+        <input
+          type="text"
+          value={REGION_OPTIONS.find((o) => o.value === form.region)?.label || form.region}
+          onChange={(e) => {
+            const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
+            updateField("region", match ? match.value : e.target.value);
+          }}
+          onBlur={(e) => {
+            const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
+            if (!match) updateField("region", "");
+          }}
+          placeholder="Search for a metro area..."
           required
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none bg-white"
-        >
-          <option value="">Select a metro area</option>
+          list="regions-list"
+          autoComplete="off"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-list-button]:hidden"
+        />
+        <datalist id="regions-list">
           {REGION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <option key={opt.value} value={opt.label} />
           ))}
-        </select>
+        </datalist>
         <p className="text-xs text-gray-400 mt-1">
           People in the same metro area will see each other
         </p>
@@ -257,7 +267,7 @@ export default function ProfileForm({
           When are you looking to move in?
         </label>
         <input
-          type="date"
+          type="month"
           value={form.move_in_date}
           onChange={(e) => updateField("move_in_date", e.target.value)}
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none"
@@ -297,6 +307,9 @@ export default function ProfileForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           About you
         </label>
+        <p className="text-xs text-gray-400 mb-2">
+          Write a short bio so potential roommates can get to know you
+        </p>
         <textarea
           value={form.bio}
           onChange={(e) => updateField("bio", e.target.value)}

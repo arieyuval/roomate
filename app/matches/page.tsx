@@ -49,7 +49,7 @@ export default function MatchesPage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           Your Matches
         </h1>

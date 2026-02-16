@@ -154,7 +154,7 @@ export default function SwipeView({
       >
         {/* Photo — tap to navigate, NO swipe here */}
         <div
-          className="relative aspect-[3/4] bg-gradient-to-br from-uw-purple to-uw-purple-light cursor-pointer"
+          className="relative aspect-[3/4] max-h-[50vh] sm:max-h-none overflow-hidden bg-gradient-to-br from-uw-purple to-uw-purple-light cursor-pointer"
           onClick={handlePhotoTap}
         >
           {hasPhotos ? (
