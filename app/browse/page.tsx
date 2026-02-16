@@ -173,7 +173,7 @@ export default function BrowsePage() {
 
       <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 space-y-3">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setTab("browse")}

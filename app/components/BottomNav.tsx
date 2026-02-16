@@ -9,8 +9,10 @@ export default function BottomNav() {
   const { user } = useAuth();
   const pathname = usePathname();
 
-  // Hide when not logged in, or on chat pages (which have their own bottom input)
+  // Hide on public pages, onboarding, and chat pages
+  const hiddenRoutes = ["/", "/login", "/onboarding"];
   if (!user) return null;
+  if (hiddenRoutes.includes(pathname)) return null;
   if (pathname.startsWith("/matches/") && pathname !== "/matches") return null;
 
   const tabs = [
