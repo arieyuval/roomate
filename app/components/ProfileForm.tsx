@@ -40,7 +40,7 @@ export default function ProfileForm({
     region: initialData?.region || "",
     same_gender_pref: initialData?.same_gender_pref || "no_preference",
     max_price: initialData?.max_price || "",
-    move_in_date: initialData?.move_in_date || "",
+    move_in_date: initialData?.move_in_date?.slice(0, 7) || "",
     job_type: initialData?.job_type || "",
     bio: initialData?.bio || "",
     contact_info: initialData?.contact_info || "",
@@ -173,7 +173,7 @@ export default function ProfileForm({
       {/* Location */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Where are you looking to live? *
+          What city are you looking to live in (specific) *
         </label>
         <input
           type="text"
@@ -194,7 +194,7 @@ export default function ProfileForm({
       {/* Region / Metro Area */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Metro area *
+          What general Metropolitain area are you looking to live in? (Select) *
         </label>
         <input
           type="text"

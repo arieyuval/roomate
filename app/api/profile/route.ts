@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest) {
     region: body.region || null,
     same_gender_pref: body.same_gender_pref || "no_preference",
     max_price: body.max_price || null,
-    move_in_date: body.move_in_date || null,
+    move_in_date: body.move_in_date ? `${body.move_in_date}-01` : null,
     job_type: body.job_type || null,
     bio: body.bio || null,
     contact_info: body.contact_info || null,
