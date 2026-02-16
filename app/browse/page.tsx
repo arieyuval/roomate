@@ -39,11 +39,14 @@ export default function BrowsePage() {
   });
 
   useEffect(() => {
+    console.log("[BROWSE] auth state:", { loading, user: user?.id, profile: profile?.user_id });
     if (!loading && !user) {
+      console.log("[BROWSE] → redirecting to /login (no user)");
       router.push("/login");
     }
     if (!loading && user && !profile) {
-      router.push("/login");
+      console.log("[BROWSE] → redirecting to /onboarding (no profile)");
+      router.push("/onboarding");
     }
   }, [user, profile, loading, router]);
 

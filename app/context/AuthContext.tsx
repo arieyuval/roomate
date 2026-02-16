@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { Profile } from "@/lib/types";
@@ -26,144 +26,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createBrowserSupabaseClient();
-  const profileFetchedFor = useRef<string | null>(null);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-      setProfile(data);
-    } catch {
-      setProfile(null);
-    }
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    return data;
   };
 
   const refreshProfile = async () => {
     if (user) {
-      profileFetchedFor.current = null;
-      await fetchProfile(user.id);
-      profileFetchedFor.current = user.id;
+      const data = await fetchProfile(user.id);
+      setProfile(data);
     }
   };
 
   useEffect(() => {
     let cancelled = false;
 
-    const initSession = async () => {
+    const init = async () => {
       try {
-        // Step 1: Fast local check — reads JWT from cookie, no network call
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (cancelled) return;
-
-        if (!session) {
-          // No session cookie at all — user is not signed in
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
+        if (cancelled || !session) {
+          if (!cancelled) setLoading(false);
           return;
         }
 
-        // Step 2: Validate session with server — handles token refresh if expired
+        // Validate with server (handles token refresh)
         const {
           data: { user: validatedUser },
-          error,
         } = await supabase.auth.getUser();
         if (cancelled) return;
 
-        if (error || !validatedUser) {
-          // Session expired and couldn't refresh — treat as signed out
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-          return;
-        }
+        const resolvedUser = validatedUser || session.user;
+        setUser(resolvedUser);
 
-        // Step 3: Session is valid — fetch profile
-        setUser(validatedUser);
-        profileFetchedFor.current = validatedUser.id;
-        await fetchProfile(validatedUser.id);
+        const profileData = await fetchProfile(resolvedUser.id);
+        if (cancelled) return;
+        setProfile(profileData);
       } catch {
         if (!cancelled) {
           setUser(null);
           setProfile(null);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
-    initSession();
+    init();
 
-    // Safety net: if loading hasn't resolved after 8s, force it
-    // (e.g. network offline). Does NOT clear user state.
-    const timeout = setTimeout(() => {
-      if (!cancelled) {
-        setLoading(false);
-      }
-    }, 8000);
-
-    // Listen for auth changes after initial load
+    // Only listen for sign-out — sign-in is handled by hard redirects
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "INITIAL_SESSION" || cancelled) return;
-
-      const currentUser = session?.user ?? null;
-
-      if (event === "SIGNED_IN") {
-        // User just signed in — set loading so destination pages show spinner
-        // while we fetch their profile
-        setLoading(true);
-        setUser(currentUser);
-        if (currentUser) {
-          profileFetchedFor.current = currentUser.id;
-          await fetchProfile(currentUser.id);
-        }
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setUser(null);
-        setProfile(null);
-        profileFetchedFor.current = null;
-        return;
-      }
-
-      if (event === "TOKEN_REFRESHED") {
-        // Token was silently refreshed — update user, re-fetch profile
-        // if it wasn't loaded (e.g. previous fetch failed with expired token)
-        setUser(currentUser);
-        if (currentUser && profileFetchedFor.current !== currentUser.id) {
-          profileFetchedFor.current = currentUser.id;
-          await fetchProfile(currentUser.id);
-        }
-        return;
-      }
-
-      // Default handler for other events
-      setUser(currentUser);
-      if (currentUser) {
-        if (profileFetchedFor.current !== currentUser.id) {
-          profileFetchedFor.current = currentUser.id;
-          await fetchProfile(currentUser.id);
-        }
-      } else {
-        profileFetchedFor.current = null;
         setProfile(null);
       }
     });
 
     return () => {
       cancelled = true;
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -171,7 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    profileFetchedFor.current = null;
     setUser(null);
     setProfile(null);
   };

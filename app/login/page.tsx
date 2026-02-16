@@ -22,7 +22,6 @@ export default function LoginPage() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // New user — always go to onboarding
         window.location.href = "/onboarding";
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -30,31 +29,16 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-
-        // Check if returning user has a profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("user_id")
-          .single();
-
-        window.location.href = profile ? "/browse" : "/onboarding";
+        window.location.href = "/browse";
       }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
       setError(message);
+    } finally {
       setSubmitting(false);
     }
   };
-
-  // Show spinner while sign-in is processing
-  if (submitting && !error) {
-    return (
-      <div className="min-h-screen gradient-purple flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen gradient-purple flex items-center justify-center p-4">

@@ -57,16 +57,25 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           )}
         </div>
         {hasActiveFilters && (
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               clearFilters();
             }}
-            className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                e.preventDefault();
+                clearFilters();
+              }
+            }}
+            className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 cursor-pointer"
           >
             <X size={12} />
             Clear
-          </button>
+          </span>
         )}
       </button>
 
