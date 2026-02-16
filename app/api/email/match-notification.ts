@@ -2,6 +2,10 @@ import { getResend } from "@/lib/resend";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export async function sendMatchEmail(user1Id: string, user2Id: string) {
+  console.log("[MATCH EMAIL] Starting sendMatchEmail for", user1Id, "and", user2Id);
+  console.log("[MATCH EMAIL] RESEND_API_KEY set:", !!process.env.RESEND_API_KEY);
+  console.log("[MATCH EMAIL] RESEND_FROM_EMAIL:", process.env.RESEND_FROM_EMAIL || "(not set, using default)");
+
   const admin = createAdminSupabaseClient();
 
   // Fetch both users' emails from auth.users (requires service role)
@@ -12,8 +16,12 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
 
   const email1 = auth1?.user?.email;
   const email2 = auth2?.user?.email;
+  console.log("[MATCH EMAIL] email1:", email1 || "(not found)", "email2:", email2 || "(not found)");
 
-  if (!email1 && !email2) return;
+  if (!email1 && !email2) {
+    console.log("[MATCH EMAIL] No emails found, skipping");
+    return;
+  }
 
   // Fetch both profiles for names
   const { data: profiles } = await admin
@@ -76,5 +84,12 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
     );
   }
 
-  await Promise.allSettled(sends);
+  const results = await Promise.allSettled(sends);
+  results.forEach((result, i) => {
+    if (result.status === "fulfilled") {
+      console.log(`[MATCH EMAIL] Email ${i + 1} sent successfully:`, result.value);
+    } else {
+      console.error(`[MATCH EMAIL] Email ${i + 1} failed:`, result.reason);
+    }
+  });
 }
