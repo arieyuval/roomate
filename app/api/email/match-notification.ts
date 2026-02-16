@@ -36,7 +36,7 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
           Hey ${recipientName}!
         </p>
         <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px;">
-          You and <strong style="color: #4B2E83;">${matchName}</strong> both expressed interest in being roommates.
+          You and <strong style="color: #4B2E83;">${matchName}</strong> both expressed interest in being roomates.
           Head to your matches to start chatting!
         </p>
         <a href="${appUrl}/matches"
@@ -44,7 +44,7 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
           View Your Matches
         </a>
         <p style="color: #9ca3af; font-size: 12px; margin: 24px 0 0;">
-          Roomate - Find Your Husky Roommate
+          Roomate - Find Your Husky Roomate
         </p>
       </div>
     </div>

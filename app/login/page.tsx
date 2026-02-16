@@ -55,7 +55,7 @@ export default function LoginPage() {
           />
           <h1 className="text-4xl font-bold text-white mb-2">Roomate</h1>
           <p className="text-uw-gold-light text-lg">
-            Find your Husky roommate
+            Find your Husky roomate
           </p>
         </div>
 

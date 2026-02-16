@@ -37,7 +37,7 @@ export default function MatchModal({ matchName, matchId, onClose }: MatchModalPr
         </div>
 
         <p className="text-sm text-gray-400 mb-6">
-          Start chatting to connect with your potential roommate
+          Start chatting to connect with your potential roomate
         </p>
 
         <div className="flex gap-3">

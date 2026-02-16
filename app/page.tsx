@@ -24,10 +24,10 @@ export default function LandingPage() {
         <h1 className="text-5xl sm:text-6xl font-extrabold text-white mb-4 leading-tight">
           Find your Husky
           <br />
-          <span className="text-uw-spirit-gold">roommate</span>
+          <span className="text-uw-spirit-gold">roomate</span>
         </h1>
         <p className="text-xl text-uw-gold-light/80 max-w-lg mx-auto mb-10">
-          The easiest way for UW students to find compatible roommates.
+          The easiest way for UW students to find compatible roomates.
           No Facebook. No Reddit. Just Huskies helping Huskies.
         </p>
 
@@ -49,7 +49,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-white font-bold mb-2">Create Your Profile</h3>
             <p className="text-white/60 text-sm">
-              Share your budget, location preferences, and what makes you a great roommate
+              Share your budget, location preferences, and what makes you a great roomate
             </p>
           </div>
 

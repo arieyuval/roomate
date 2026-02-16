@@ -205,7 +205,7 @@ export default function ProfileForm({
       {/* Same gender preference */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Roommate gender preference
+          Roomate gender preference
         </label>
         <div className="flex flex-wrap gap-2">
           {SAME_GENDER_PREF_OPTIONS.map((opt) => (
@@ -287,12 +287,12 @@ export default function ProfileForm({
           About you
         </label>
         <p className="text-xs text-gray-400 mb-2">
-          Write a short bio so potential roommates can get to know you
+          Write a short bio so potential roomates can get to know you
         </p>
         <textarea
           value={form.bio}
           onChange={(e) => updateField("bio", e.target.value)}
-          placeholder="Tell potential roommates about yourself — your habits, hobbies, what you're looking for..."
+          placeholder="Tell potential roomates about yourself — your habits, hobbies, what you're looking for..."
           rows={4}
           maxLength={500}
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none resize-none"

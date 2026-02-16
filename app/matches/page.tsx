@@ -65,7 +65,7 @@ export default function MatchesPage() {
             </div>
             <p className="text-lg font-medium">No matches yet</p>
             <p className="text-sm mb-4">
-              Keep browsing to find your future roommate
+              Keep browsing to find your future roomate
             </p>
             <button
               onClick={() => router.push("/browse")}

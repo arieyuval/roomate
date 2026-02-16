@@ -4,9 +4,9 @@ import BottomNav from "@/app/components/BottomNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Roomate - Find Your Husky Roommate",
+  title: "Roomate - Find Your Husky Roomate",
   description:
-    "The easiest way for UW students to find compatible roommates. Browse profiles, match with fellow Huskies, and find your perfect living situation.",
+    "The easiest way for UW students to find compatible roomates. Browse profiles, match with fellow Huskies, and find your perfect living situation.",
 };
 
 export const viewport: Viewport = {
