@@ -14,7 +14,7 @@ export default function LandingPage() {
         <div className="mb-8">
           <Image
             src="/logo.png"
-            alt="Roomates"
+            alt="Roomate"
             width={120}
             height={120}
             className="mx-auto rounded-full"

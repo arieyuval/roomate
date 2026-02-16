@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { GENDER_OPTIONS, JOB_TYPE_OPTIONS, REGION_OPTIONS } from "@/lib/constants";
+import SearchableSelect from "./SearchableSelect";
 
 export interface Filters {
   region: string;
@@ -86,27 +87,12 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <label className="block text-xs font-medium text-gray-500 mb-1">
               Metro Area
             </label>
-            <input
-              type="text"
-              value={REGION_OPTIONS.find((o) => o.value === filters.region)?.label || filters.region}
-              onChange={(e) => {
-                const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
-                updateFilter("region", match ? match.value : e.target.value);
-              }}
-              onBlur={(e) => {
-                const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
-                if (!match) updateFilter("region", "");
-              }}
+            <SearchableSelect
+              options={REGION_OPTIONS}
+              value={filters.region}
+              onChange={(val) => updateFilter("region", val)}
               placeholder="Any"
-              list="filter-regions-list"
-              autoComplete="off"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-list-button]:hidden"
             />
-            <datalist id="filter-regions-list">
-              {REGION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.label} />
-              ))}
-            </datalist>
           </div>
 
           <div>

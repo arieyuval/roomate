@@ -33,12 +33,12 @@ export default function NavBar() {
           >
             <Image
               src="/logo.png"
-              alt="Roomates"
+              alt="Roomate"
               width={32}
               height={32}
               className="rounded-full"
             />
-            Roomates
+            Roomate
           </Link>
 
           <div className="flex items-center gap-1">

@@ -47,13 +47,13 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Image
             src="/logo.png"
-            alt="Roomates"
+            alt="Roomate"
             width={80}
             height={80}
             className="mx-auto rounded-full mb-3"
             priority
           />
-          <h1 className="text-4xl font-bold text-white mb-2">Roomates</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Roomate</h1>
           <p className="text-uw-gold-light text-lg">
             Find your Husky roommate
           </p>

@@ -15,9 +15,8 @@ export const GENDER_OPTIONS = [
 ] as const;
 
 export const SAME_GENDER_PREF_OPTIONS = [
-  { value: "yes", label: "Same gender only" },
   { value: "no", label: "Any gender" },
-  { value: "no_preference", label: "No preference" },
+  { value: "yes", label: "Same gender only" },
 ] as const;
 
 export const JOB_TYPE_OPTIONS = [

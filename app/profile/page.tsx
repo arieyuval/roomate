@@ -2,17 +2,14 @@
 
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
 import ProfileForm from "@/app/components/ProfileForm";
-import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import NavBar from "@/app/components/NavBar";
 
 export default function EditProfilePage() {
   const { user, profile, loading, refreshProfile } = useAuth();
   const router = useRouter();
-  const [deactivating, setDeactivating] = useState(false);
-  const supabase = createBrowserSupabaseClient();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -22,18 +19,6 @@ export default function EditProfilePage() {
       router.push("/login");
     }
   }, [user, profile, loading, router]);
-
-  const toggleActive = async () => {
-    if (!profile) return;
-    setDeactivating(true);
-    await fetch("/api/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...profile, is_active: !profile.is_active }),
-    });
-    await refreshProfile();
-    setDeactivating(false);
-  };
 
   if (loading || !user || !profile) {
     return (
@@ -60,28 +45,6 @@ export default function EditProfilePage() {
             Edit Profile
           </h1>
           <ProfileForm userId={user.id} initialData={profile} onSaved={refreshProfile} />
-
-          {/* Profile visibility toggle */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              onClick={toggleActive}
-              disabled={deactivating}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              {profile.is_active ? (
-                <>
-                  <EyeOff size={16} />
-                  Hide my profile from browse
-                </>
-              ) : (
-                <>
-                  <Eye size={16} />
-                  Show my profile in browse
-                </>
-              )}
-            </button>
-          </div>
-
         </div>
       </div>
     </div>

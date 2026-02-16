@@ -12,6 +12,7 @@ import {
   REGION_OPTIONS,
 } from "@/lib/constants";
 import PhotoUpload from "./PhotoUpload";
+import SearchableSelect from "./SearchableSelect";
 
 interface ProfileFormProps {
   userId: string;
@@ -37,7 +38,7 @@ export default function ProfileForm({
     gender: initialData?.gender || "",
     location: initialData?.location || "",
     region: initialData?.region || "",
-    same_gender_pref: initialData?.same_gender_pref || "no_preference",
+    same_gender_pref: initialData?.same_gender_pref || "no",
     max_price: initialData?.max_price || "",
     move_in_date: initialData?.move_in_date?.slice(0, 7) || "",
     job_type: initialData?.job_type || "",
@@ -189,28 +190,13 @@ export default function ProfileForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           What general Metropolitain area are you looking to live in? (Select) *
         </label>
-        <input
-          type="text"
-          value={REGION_OPTIONS.find((o) => o.value === form.region)?.label || form.region}
-          onChange={(e) => {
-            const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
-            updateField("region", match ? match.value : e.target.value);
-          }}
-          onBlur={(e) => {
-            const match = REGION_OPTIONS.find((o) => o.label === e.target.value);
-            if (!match) updateField("region", "");
-          }}
+        <SearchableSelect
+          options={REGION_OPTIONS}
+          value={form.region}
+          onChange={(val) => updateField("region", val)}
           placeholder="Search for a metro area..."
           required
-          list="regions-list"
-          autoComplete="off"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-list-button]:hidden"
         />
-        <datalist id="regions-list">
-          {REGION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.label} />
-          ))}
-        </datalist>
         <p className="text-xs text-gray-400 mt-1">
           People in the same metro area will see each other
         </p>
@@ -270,7 +256,7 @@ export default function ProfileForm({
       {/* Job Type */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          What brings you there?
+          Are you moving for an internship or full-time?
         </label>
         <div className="flex flex-wrap gap-2">
           {JOB_TYPE_OPTIONS.map((opt) => (

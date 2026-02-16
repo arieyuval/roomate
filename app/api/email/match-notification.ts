@@ -44,14 +44,14 @@ export async function sendMatchEmail(user1Id: string, user2Id: string) {
           View Your Matches
         </a>
         <p style="color: #9ca3af; font-size: 12px; margin: 24px 0 0;">
-          Roomates - Find Your Husky Roommate
+          Roomate - Find Your Husky Roommate
         </p>
       </div>
     </div>
   `;
 
   const resend = getResend();
-  const fromAddress = process.env.RESEND_FROM_EMAIL || "Roomates <onboarding@resend.dev>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL || "Roomate <onboarding@resend.dev>";
   const sends = [];
 
   if (email1) {

@@ -241,7 +241,7 @@ export default function ChatPage() {
       {/* Disclaimer banner */}
       <div className="bg-uw-spirit-gold/20 border-b border-uw-spirit-gold/30 px-4 py-2.5 text-center">
         <p className="text-sm text-uw-purple-dark font-medium">
-          To keep Roomates free you only have {MAX_MESSAGES} messages per chat.
+          To keep Roomate free you only have {MAX_MESSAGES} messages per chat.
           Exchange some other contact info ASAP!
         </p>
       </div>
