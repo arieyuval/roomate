@@ -8,7 +8,6 @@ import {
   GENDER_OPTIONS,
   SAME_GENDER_PREF_OPTIONS,
   JOB_TYPE_OPTIONS,
-  POPULAR_LOCATIONS,
   POPULAR_MAJORS,
   REGION_OPTIONS,
 } from "@/lib/constants";
@@ -173,7 +172,7 @@ export default function ProfileForm({
       {/* Location */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          What city are you looking to live in (specific) *
+          What city are you looking to live in *
         </label>
         <input
           type="text"
@@ -181,14 +180,8 @@ export default function ProfileForm({
           onChange={(e) => updateField("location", e.target.value)}
           placeholder="e.g. Seattle, WA"
           required
-          list="locations-list"
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-uw-purple focus:border-transparent outline-none"
         />
-        <datalist id="locations-list">
-          {POPULAR_LOCATIONS.map((l) => (
-            <option key={l} value={l} />
-          ))}
-        </datalist>
       </div>
 
       {/* Region / Metro Area */}
